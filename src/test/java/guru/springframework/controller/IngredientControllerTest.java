@@ -2,6 +2,8 @@ package guru.springframework.controller;
 
 import guru.springframework.command.IngredientCommand;
 import guru.springframework.command.RecipeCommand;
+import guru.springframework.command.UnitOfMeasureCommand;
+import guru.springframework.models.UnitOfMeasure;
 import guru.springframework.services.IngredientService;
 import guru.springframework.services.RecipeService;
 import guru.springframework.services.UnitOfMeasureService;
@@ -14,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import reactor.core.publisher.Flux;
 
 import java.util.HashSet;
 
@@ -79,7 +82,7 @@ public class IngredientControllerTest {
         recipeCommand.setId("1");
 
         when(recipeService.findCommandById(any())).thenReturn(recipeCommand);
-        when(unitOfMeasureService.listAllUOM()).thenReturn(new HashSet<>());
+        when(unitOfMeasureService.listAllUOM()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
 
@@ -97,7 +100,7 @@ public class IngredientControllerTest {
         ingredientCommand.setId("1");
 
         when(ingredientService.findByRecipeIdAndIngredientId(any(), any())).thenReturn(ingredientCommand);
-        when(unitOfMeasureService.listAllUOM()).thenReturn(new HashSet<>());
+        when(unitOfMeasureService.listAllUOM()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
 

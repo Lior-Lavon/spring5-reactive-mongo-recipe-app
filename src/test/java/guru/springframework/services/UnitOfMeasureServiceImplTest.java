@@ -4,13 +4,16 @@ import guru.springframework.Converters.UnitOfMeasureToUnitOfMeasureCommand;
 import guru.springframework.command.UnitOfMeasureCommand;
 import guru.springframework.models.UnitOfMeasure;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -19,10 +22,10 @@ import static org.mockito.Mockito.*;
 
 public class UnitOfMeasureServiceImplTest {
 
-    UnitOfMeasureService unitOfMeasureService;
+    UnitOfMeasureService service;
 
     @Mock
-    UnitOfMeasureRepository unitOfMeasureRepository;
+    UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -30,7 +33,7 @@ public class UnitOfMeasureServiceImplTest {
         // add the RecipeRepository
         MockitoAnnotations.initMocks(this);
 
-        unitOfMeasureService = new UnitOfMeasureServiceImpl(unitOfMeasureRepository, new UnitOfMeasureToUnitOfMeasureCommand());
+        service = new UnitOfMeasureServiceImpl(unitOfMeasureReactiveRepository, new UnitOfMeasureToUnitOfMeasureCommand());
     }
 
     String ID1 = "1";
@@ -42,29 +45,24 @@ public class UnitOfMeasureServiceImplTest {
 
         // given
         Set<UnitOfMeasure> unitOfMeasureSet = new HashSet<>();
-        UnitOfMeasure unitOfMeasure1 = new UnitOfMeasure();
-        unitOfMeasure1.setId(ID1);
-        unitOfMeasure1.setDescription("aaa");
+        UnitOfMeasure uom1 = new UnitOfMeasure();
+        uom1.setId(ID1);
+        uom1.setDescription("aaa");
+        unitOfMeasureSet.add(uom1);
 
-        UnitOfMeasure unitOfMeasure2 = new UnitOfMeasure();
-        unitOfMeasure2.setId(ID3);
-        unitOfMeasure2.setDescription("bbb");
+        UnitOfMeasure uom2 = new UnitOfMeasure();
+        uom2.setId(ID3);
+        uom2.setDescription("bbb");
+        unitOfMeasureSet.add(uom2);
 
-        UnitOfMeasure unitOfMeasure3 = new UnitOfMeasure();
-        unitOfMeasure3.setId(ID3);
-        unitOfMeasure3.setDescription("ccc");
-
-        unitOfMeasureSet.add(unitOfMeasure1);
-        unitOfMeasureSet.add(unitOfMeasure2);
-        unitOfMeasureSet.add(unitOfMeasure3);
-
-        when(unitOfMeasureRepository.findAll()).thenReturn(unitOfMeasureSet);
+        // Flux.just(uom1, uom2) -> create a publisher with two uom
+        when(unitOfMeasureReactiveRepository.findAll()).thenReturn(Flux.just(uom1, uom2));
 
         // when
-        Set<UnitOfMeasureCommand> unitOfMeasureCommandSet = unitOfMeasureService.listAllUOM();
+        List<UnitOfMeasureCommand> unitOfMeasureCommandList = service.listAllUOM().collectList().block();
 
         // then
-        assertNotNull(unitOfMeasureCommandSet);
-        assertEquals(3, unitOfMeasureCommandSet.size());
+        assertNotNull(unitOfMeasureCommandList);
+        assertEquals(2, unitOfMeasureCommandList.size());
     }
 }

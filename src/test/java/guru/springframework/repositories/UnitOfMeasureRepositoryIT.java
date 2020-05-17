@@ -1,7 +1,8 @@
 package guru.springframework.repositories;
 
-import guru.springframework.bootstrap.BootstrapDataSQL;
+import guru.springframework.bootstrap.RecipeBootstrap;
 import guru.springframework.models.UnitOfMeasure;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +33,7 @@ public class UnitOfMeasureRepositoryIT {
     public void setUp() throws Exception {
 
         // load the content to the database before the test
-        BootstrapDataSQL bootStrap = new BootstrapDataSQL(recipeRepository, categoryRepository, unitOfMeasureRepository);
+        RecipeBootstrap bootStrap = new RecipeBootstrap(recipeRepository, categoryRepository, unitOfMeasureRepository);
         bootStrap.onApplicationEvent(null);
     }
 
