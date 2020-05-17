@@ -1,0 +1,13 @@
+# Active for Dev
+spring:
+  datasource:
+    platform: mongo
+
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate
+#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+#    database: mysql
+#    show-sql: true
+
+

@@ -1,0 +1,8 @@
+# default configuration, active when no other profile setup
+spring:
+  datasource:
+    platform: h2
+
+
+
+
