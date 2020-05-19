@@ -2,22 +2,29 @@ package guru.springframework.services;
 
 import guru.springframework.Converters.RecipeCommandToRecipe;
 import guru.springframework.Converters.RecipeToRecipeCommand;
+import guru.springframework.command.RecipeCommand;
 import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.models.Recipe;
 import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+@Slf4j
 public class RecipeServiceImplTest {
 
     // Inject the main class
@@ -25,7 +32,7 @@ public class RecipeServiceImplTest {
 
     // Inject the repository
     @Mock
-    RecipeRepository recipeRepository;
+    RecipeReactiveRepository recipeReactiveRepository;
     @Mock
     RecipeCommandToRecipe recipeCommandToRecipe;
     @Mock
@@ -40,7 +47,7 @@ public class RecipeServiceImplTest {
         // add the RecipeRepository
         MockitoAnnotations.initMocks(this);
 
-        recipeService = new RecipeServiceImpl(recipeRepository, recipeCommandToRecipe, recipeToRecipeCommand);
+        recipeService = new RecipeServiceImpl(recipeReactiveRepository, recipeCommandToRecipe, recipeToRecipeCommand);
     }
 
     @Test
@@ -49,15 +56,15 @@ public class RecipeServiceImplTest {
         Recipe recipe = new Recipe();
         recipe.setId(ID1);
 
-        Optional<Recipe> optionalRecipe = Optional.of(recipe);
+        //Optional<Recipe> optionalRecipe = Optional.of(recipe);
 
-        when(recipeRepository.findById(any())).thenReturn(optionalRecipe);
+        when(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(recipe));
 
-        Recipe recipeReturned = recipeService.findById(ID1);
+        Recipe recipeReturned = recipeService.findById(ID1).block();
 
         assertNotNull("Null recipe returned", recipeReturned);
-        verify(recipeRepository, times(1)).findById(any());
-        verify(recipeRepository, never()).findAll();
+        verify(recipeReactiveRepository, times(1)).findById(anyString());
+        verify(recipeReactiveRepository, never()).findAll();
     }
 
     @Test
@@ -65,19 +72,17 @@ public class RecipeServiceImplTest {
 
         // Create test set
         Recipe recipe = new Recipe();
-        Set<Recipe> recipeData = new HashSet();
-        recipeData.add(recipe);
 
         // tell mockito -> when 'recipeRepository.findAll()' is called -> Then -> return 'recipeData'
-        when(recipeRepository.findAll()).thenReturn(recipeData);
+        when(recipeReactiveRepository.findAll()).thenReturn(Flux.just(recipe));
 
         // call recipeService.getRecipes that will call behind to recipeRepository.findAll()
-        Set<Recipe> recipes = recipeService.getRecipes();
+        List<Recipe> recipes = recipeService.getRecipes().collectList().block();
 
-        assertEquals(recipes.size(), 1);
+        assertEquals(1, recipes.size());
 
         // make sure that the recipeRepository.findAll was called once and only once
-        verify(recipeRepository, times(1)).findAll();
+        verify(recipeReactiveRepository, times(1)).findAll();
     }
 
     @Test
@@ -90,21 +95,7 @@ public class RecipeServiceImplTest {
         // no need as there is no return value
 
         // then
-        verify(recipeRepository, times(1)).deleteById(any());
-    }
-
-    // Test exception for not found
-
-    @Test(expected = NotFoundException.class)
-    public void getRecipeByIdTestNotFound(){
-
-        Optional<Recipe> recipeOptional = Optional.empty();
-
-        when(recipeRepository.findById(any())).thenReturn(recipeOptional);
-
-        Recipe recipeReturned = recipeService.findById(ID1);
-
-        // should go BOOM
+        verify(recipeReactiveRepository, times(1)).deleteById(anyString());
     }
 
 

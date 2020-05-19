@@ -1,12 +1,10 @@
 package guru.springframework.controller;
 
-import guru.springframework.command.IngredientCommand;
 import guru.springframework.command.RecipeCommand;
 import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.models.Recipe;
 import guru.springframework.services.RecipeService;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +28,7 @@ public class RecipeController {
     @GetMapping("/recipe/{id}/show")
     public String showById(Model model, @PathVariable String id){
 
-        Recipe recipe = recipeService.findById(id);
+        Recipe recipe = recipeService.findById(id).block();
         model.addAttribute("recipe", recipe);
 
         return "recipe/show";
@@ -49,7 +47,7 @@ public class RecipeController {
     // load a filed form with recipe
     @GetMapping("/recipe/{id}/update")
     public String loadFiledRecipeFormForUpdate(Model model, @PathVariable String id){
-        RecipeCommand recipeCommand = recipeService.findCommandById(id);
+        RecipeCommand recipeCommand = recipeService.findCommandById(id).block();
 
         model.addAttribute("recipe", recipeCommand);
 
@@ -70,7 +68,7 @@ public class RecipeController {
             return RECIPE_RECIPEFORM_URL;
         }
 
-        RecipeCommand savedCommand = recipeService.saveRecipeCommand(command);
+        RecipeCommand savedCommand = recipeService.saveRecipeCommand(command).block();
 
         return "redirect:/recipe/" + savedCommand.getId() + "/show";
     }

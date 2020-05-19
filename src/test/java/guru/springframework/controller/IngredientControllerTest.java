@@ -17,11 +17,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -54,7 +54,7 @@ public class IngredientControllerTest {
     public void testListIngredient() throws Exception {
 
         RecipeCommand recipeCommand = new RecipeCommand();
-        when(recipeService.findCommandById(any())).thenReturn(recipeCommand);
+        when(recipeService.findCommandById(any())).thenReturn(Mono.just(recipeCommand));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/recipe/1/ingredients"))
                 .andExpect(status().isOk())
@@ -66,7 +66,7 @@ public class IngredientControllerTest {
     public void testShowIngredient() throws Exception {
 
         IngredientCommand ingredientCommand = new IngredientCommand();
-        when(ingredientService.findByRecipeIdAndIngredientId(any(), any())).thenReturn(ingredientCommand);
+        when(ingredientService.findByRecipeIdAndIngredientId(any(), any())).thenReturn(Mono.just(ingredientCommand));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/recipe/1/ingredient/1/show"))
                 .andExpect(status().isOk())
@@ -81,7 +81,7 @@ public class IngredientControllerTest {
         RecipeCommand recipeCommand = new RecipeCommand();
         recipeCommand.setId("1");
 
-        when(recipeService.findCommandById(any())).thenReturn(recipeCommand);
+        when(recipeService.findCommandById(any())).thenReturn(Mono.just(recipeCommand));
         when(unitOfMeasureService.listAllUOM()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
@@ -99,7 +99,7 @@ public class IngredientControllerTest {
         IngredientCommand ingredientCommand = new IngredientCommand();
         ingredientCommand.setId("1");
 
-        when(ingredientService.findByRecipeIdAndIngredientId(any(), any())).thenReturn(ingredientCommand);
+        when(ingredientService.findByRecipeIdAndIngredientId(any(), any())).thenReturn(Mono.just(ingredientCommand));
         when(unitOfMeasureService.listAllUOM()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
@@ -118,32 +118,29 @@ public class IngredientControllerTest {
         ingredientCommand.setId("2");
         ingredientCommand.setRecipeId("1");
 
-        when(ingredientService.saveIngredientCommand(ingredientCommand)).thenReturn(ingredientCommand);
+        when(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(ingredientCommand));
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/recipe/1/ingredient")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)    // mimic a form post
-                .param("id", "")                        // mimic an empty string
+                .param("id", "2")                        // mimic an empty string
                 .param("description", "some string")    // some description
         )
                 .andExpect(status().is3xxRedirection()) // expect 3xx status of redirection
-                .andExpect(view().name("redirect:/recipe/1/ingredients")); // redirection string
-
+                .andExpect(view().name("redirect:/recipe/1/ingredient/2/show")); // redirection string
     }
 
     @Test
     public void testDeleteIngredient() throws Exception {
 
+        when(ingredientService.deleteById(anyString(), anyString())).thenReturn(Mono.empty());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(ingredientController).build();
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/recipe/1/ingredient/2/delete")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)    // mimic a form post
-                .param("id", "")                        // mimic an empty string
-                .param("description", "some string")    // some description
-        )
-                .andExpect(status().is3xxRedirection()) // expect 3xx status of redirection
-                .andExpect(view().name("redirect:/recipe/1/ingredients")); // redirection string
+        mockMvc.perform(MockMvcRequestBuilders.get("/recipe/1/ingredient/2/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/recipe/1/ingredients"));
+
     }
 
 

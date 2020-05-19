@@ -17,6 +17,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import reactor.core.publisher.Mono;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -57,7 +58,7 @@ public class ImageControllerTest {
         RecipeCommand recipeCommand = new RecipeCommand();
         recipeCommand.setId("1");
 
-        when(recipeService.findCommandById(any())).thenReturn(recipeCommand);
+        when(recipeService.findCommandById(any())).thenReturn(Mono.just(recipeCommand));
 
 
         mockMvc.perform(MockMvcRequestBuilders.get("/recipe/1/image"))
@@ -76,6 +77,7 @@ public class ImageControllerTest {
         MockMultipartFile multipartFile =
                 new MockMultipartFile("imagefile", "testing.txt", "text/plain", "Spring Framework Guru".getBytes());
 
+        when(imageService.saveImageFile(anyString(), any())).thenReturn(Mono.empty());
 
         // multipart - mimic a multi part upload
         mockMvc.perform(multipart("/recipe/1/image").file(multipartFile))
@@ -104,7 +106,7 @@ public class ImageControllerTest {
 
         recipeCommand.setImage(bytesBox);
 
-        when(recipeService.findCommandById(any())).thenReturn(recipeCommand);
+        when(recipeService.findCommandById(any())).thenReturn(Mono.just(recipeCommand));
 
         // when
         MockHttpServletResponse response = mockMvc.perform(MockMvcRequestBuilders.get("/recipe/1/recipeimage"))

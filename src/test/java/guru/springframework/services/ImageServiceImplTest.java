@@ -2,6 +2,7 @@ package guru.springframework.services;
 
 import guru.springframework.models.Recipe;
 import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import org.mockito.*;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -22,7 +24,7 @@ public class ImageServiceImplTest {
     ImageService imageService;
 
     @Mock
-    RecipeRepository recipeRepository;
+    RecipeReactiveRepository recipeReactiveRepository;
 
     String ID1 = "1";
     String ID2 = "2";
@@ -32,7 +34,7 @@ public class ImageServiceImplTest {
 
         MockitoAnnotations.initMocks(this);
 
-        imageService = new ImageServiceImpl(recipeRepository);
+        imageService = new ImageServiceImpl(recipeReactiveRepository);
     }
 
     // test saving the image to the DB
@@ -45,18 +47,18 @@ public class ImageServiceImplTest {
 
         Recipe recipe = new Recipe();
         recipe.setId(ID1);
-        Optional<Recipe> recipeOptional = Optional.of(recipe);
 
-        when(recipeRepository.findById(any())).thenReturn(recipeOptional);
+        when(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(recipe));
+        when(recipeReactiveRepository.save(any())).thenReturn(Mono.just(recipe));
 
-        // preper an argument to capture the input value of recipe later below
+        // prepare an argument to capture the input value of recipe later below
         ArgumentCaptor<Recipe> argumentCaptor = ArgumentCaptor.forClass(Recipe.class);
 
         //when
         imageService.saveImageFile(ID1, multipartFile);
 
         //then
-        verify(recipeRepository, times(1)).save(argumentCaptor.capture());
+        verify(recipeReactiveRepository, times(1)).save(argumentCaptor.capture());
         Recipe savedRecipe = argumentCaptor.getValue();
         assertEquals(multipartFile.getBytes().length, savedRecipe.getImage().length);
     }

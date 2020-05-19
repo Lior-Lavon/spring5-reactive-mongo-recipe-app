@@ -31,7 +31,6 @@ public class Recipe{
     private Byte[] image;
     private Notes notes; // 1-1
 
-    @DBRef
     private Set<Category> categories = new HashSet<>();
 
     public void addIngredient(Ingredient ingredient){
